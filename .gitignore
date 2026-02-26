@@ -1,0 +1,23 @@
+# Environment
+.env
+
+# Grade data (persisted locally, contains personal info)
+data/grades.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Logs
+logs/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
