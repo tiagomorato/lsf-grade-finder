@@ -3,7 +3,12 @@ import sys
 import time
 
 from src.config import load_config
-from src.notifier import notify_error, notify_new_grades
+from src.notifier import (
+    _send_message,
+    notify_error,
+    notify_new_grades,
+    send_grades_summary,
+)
 from src.scraper import scrape_grades
 from src.storage import find_new_grades, load_known_grades, save_grades
 
@@ -43,6 +48,22 @@ def check_grades(config: dict) -> None:
 
 def main() -> None:
     config = load_config()
+
+    if "--grades" in sys.argv:
+        grades = load_known_grades()
+        if not grades:
+            _send_message(
+                config["telegram_bot_token"],
+                config["telegram_chat_id"],
+                "No grades stored yet. Run a grade check first.",
+            )
+        else:
+            send_grades_summary(
+                config["telegram_bot_token"],
+                config["telegram_chat_id"],
+                grades,
+            )
+        return
 
     if config["run_mode"] == "once":
         try:

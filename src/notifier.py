@@ -33,6 +33,51 @@ def notify_new_grades(token: str, chat_id: str, grades: list[dict]) -> None:
         _send_message(token, chat_id, message)
 
 
+def format_grades_table(grades: list[dict]) -> str:
+    """Format grades into a monospace summary table for Telegram."""
+    lines = ["📊 Grade Summary\n"]
+    lines.append("<pre>")
+    lines.append(f"{'Course':<20} │ Grade │ Credits")
+    lines.append("─" * 20 + "─┼───────┼────────")
+
+    graded = []
+    for g in [g for g in grades if not g["name"].startswith("Vorläufig")]:
+        name = g["name"]
+        if len(name) > 20:
+            name = name[:17] + "..."
+        grade_str = g["grade"].center(5)
+        credits_str = g["credits"].rjust(5)
+        lines.append(f"{name:<20} │ {grade_str} │ {credits_str}")
+
+        try:
+            grade_val = float(g["grade"].replace(",", "."))
+            credits_val = float(g["credits"].replace(",", "."))
+            graded.append((grade_val, credits_val))
+        except ValueError:
+            pass
+
+    lines.append("─" * 20 + "─┼───────┼────────")
+
+    if graded:
+        avg = sum(v for v, _ in graded) / len(graded)
+        avg_str = f"{avg:.1f}".replace(".", ",").center(5)
+        total = sum(c for _, c in graded)
+        total_str = f"{total:.1f}".replace(".", ",").rjust(5)
+    else:
+        avg_str = "  -  "
+        total_str = "    -"
+
+    lines.append(f"{'Average':<20} │ {avg_str} │ {total_str}")
+    lines.append("</pre>")
+    return "\n".join(lines)
+
+
+def send_grades_summary(token: str, chat_id: str, grades: list[dict]) -> None:
+    """Format and send a grade summary table via Telegram."""
+    message = format_grades_table(grades)
+    _send_message(token, chat_id, message)
+
+
 def notify_error(token: str, chat_id: str, error: Exception) -> None:
     """Send an error notification via Telegram."""
     message = f"⚠️ LSF Grade Finder Error\n\n{type(error).__name__}: {error}"
