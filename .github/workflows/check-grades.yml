@@ -21,6 +21,12 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
+      - name: Restore grades data
+        uses: actions/cache/restore@v4
+        with:
+          path: data/grades.json
+          key: grades-data
+
       - name: Check for new grades
         env:
           LSF_BASE_URL: ${{ secrets.LSF_BASE_URL }}
@@ -30,11 +36,9 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: uv run python -m src.main
 
-      - name: Persist grades data
+      - name: Save grades data
+        uses: actions/cache/save@v4
         if: always()
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/grades.json || true
-          git diff --staged --quiet || git commit -m "Update grades data"
-          git push || true
+        with:
+          path: data/grades.json
+          key: grades-data-${{ github.run_id }}
