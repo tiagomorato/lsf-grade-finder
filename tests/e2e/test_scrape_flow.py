@@ -3,14 +3,17 @@ import json
 import responses
 
 from src.main import check_grades
-from tests.conftest import SAMPLE_GRADES_TABLE, SAMPLE_LOGIN_HTML
+from tests.conftest import (
+    SAMPLE_GRADES_TABLE,
+    SAMPLE_LOGIN_HTML,
+    SAMPLE_PORTAL_HTML,
+)
 
 BASE_URL = "https://lsf.example.com/"
-GRADES_URL = "https://lsf.example.com/grades"
+NOTENSPIEGEL_URL = "https://lsf.example.com/qisserver/notenspiegel"
 
 CONFIG = {
     "lsf_base_url": BASE_URL,
-    "lsf_grades_url": GRADES_URL,
     "lsf_username": "testuser",
     "lsf_password": "testpass",
     "telegram_bot_token": "123:ABC",
@@ -20,7 +23,7 @@ CONFIG = {
 }
 
 
-def _setup_lsf_mocks():
+def _setup_lsf_mocks(grades_html=None):
     """Register mock responses for the full LSF flow."""
     # GET login page
     responses.add(
@@ -30,19 +33,19 @@ def _setup_lsf_mocks():
         status=200,
     )
 
-    # POST login form
+    # POST login form -> returns portal page with Notenspiegel link
     responses.add(
         responses.POST,
         BASE_URL + "qisserver/rds?state=user&type=1",
-        body="<html><body>Welcome</body></html>",
+        body=SAMPLE_PORTAL_HTML,
         status=200,
     )
 
-    # GET grades page (returns table directly, no Notenspiegel link)
+    # GET Notenspiegel page -> returns grade table
     responses.add(
         responses.GET,
-        GRADES_URL,
-        body=SAMPLE_GRADES_TABLE,
+        NOTENSPIEGEL_URL,
+        body=grades_html or SAMPLE_GRADES_TABLE,
         status=200,
     )
 
@@ -63,7 +66,6 @@ class TestFullScrapeFlow:
         _setup_lsf_mocks()
         _setup_telegram_mock()
 
-        # Use temp directory for grade storage
         monkeypatch.setattr("src.storage.DATA_DIR", tmp_path)
         monkeypatch.setattr("src.storage.GRADES_FILE", tmp_path / "grades.json")
         monkeypatch.setattr("src.main.load_known_grades", lambda: [])
@@ -111,7 +113,6 @@ class TestFullScrapeFlow:
     @responses.activate
     def test_new_grade_added(self, tmp_path, monkeypatch):
         """Simulate a new grade appearing that wasn't there before."""
-        # Return a table with 3 grades (including one previously without a grade)
         grades_html = (
             "<html><body><table>"
             "<tr><th>Nr</th><th>Name</th><th>Note</th>"
@@ -128,14 +129,7 @@ class TestFullScrapeFlow:
             "</table></body></html>"
         )
 
-        responses.add(responses.GET, BASE_URL, body=SAMPLE_LOGIN_HTML, status=200)
-        responses.add(
-            responses.POST,
-            BASE_URL + "qisserver/rds?state=user&type=1",
-            body="<html><body>Welcome</body></html>",
-            status=200,
-        )
-        responses.add(responses.GET, GRADES_URL, body=grades_html, status=200)
+        _setup_lsf_mocks(grades_html=grades_html)
         _setup_telegram_mock()
 
         existing_grades = [
@@ -155,7 +149,7 @@ class TestFullScrapeFlow:
 
         check_grades(CONFIG)
 
-        # Only 1 new grade → 1 Telegram message
+        # Only 1 new grade -> 1 Telegram message
         telegram_calls = [c for c in responses.calls if "telegram" in c.request.url]
         assert len(telegram_calls) == 1
 

@@ -8,7 +8,6 @@ def full_env(monkeypatch):
     """Set all required environment variables."""
     env_vars = {
         "LSF_BASE_URL": "https://lsf.example.com/",
-        "LSF_GRADES_URL": "https://lsf.example.com/grades",
         "LSF_USERNAME": "testuser",
         "LSF_PASSWORD": "testpass",
         "TELEGRAM_BOT_TOKEN": "123:ABC",

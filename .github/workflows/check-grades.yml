@@ -24,7 +24,6 @@ jobs:
       - name: Check for new grades
         env:
           LSF_BASE_URL: ${{ secrets.LSF_BASE_URL }}
-          LSF_GRADES_URL: ${{ secrets.LSF_GRADES_URL }}
           LSF_USERNAME: ${{ secrets.LSF_USERNAME }}
           LSF_PASSWORD: ${{ secrets.LSF_PASSWORD }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}

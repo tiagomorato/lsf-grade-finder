@@ -64,7 +64,7 @@ uv run python -m src.main        # Run the grade checker (needs .env)
 
 ## Configuration
 
-All config via environment variables (loaded from `.env` by `python-dotenv`). See `.env.example` for the full list. Required: `LSF_BASE_URL`, `LSF_GRADES_URL`, `LSF_USERNAME`, `LSF_PASSWORD`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`.
+All config via environment variables (loaded from `.env` by `python-dotenv`). See `.env.example` for the full list. Required: `LSF_BASE_URL`, `LSF_USERNAME`, `LSF_PASSWORD`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`.
 
 ## Key Design Decisions
 

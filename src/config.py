@@ -8,7 +8,6 @@ logger = logging.getLogger(__name__)
 
 REQUIRED_VARS = [
     "LSF_BASE_URL",
-    "LSF_GRADES_URL",
     "LSF_USERNAME",
     "LSF_PASSWORD",
     "TELEGRAM_BOT_TOKEN",

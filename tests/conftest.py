@@ -34,10 +34,11 @@ SAMPLE_LOGIN_HTML_NO_PASSWORD = """\
 </html>
 """
 
-SAMPLE_GRADES_PAGE_WITH_LINK = """\
+SAMPLE_PORTAL_HTML = """\
 <html>
 <body>
-<a href="/notenspiegel?detail=true">Notenspiegel anzeigen</a>
+<a href="https://lsf.example.com/qisserver/notenspiegel">\
+Studien-/Prüfungsleistungen (Notenspiegel)</a>
 </body>
 </html>
 """

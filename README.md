@@ -33,7 +33,6 @@ This is the easiest setup — no server required, completely free.
    | Secret | Value |
    |---|---|
    | `LSF_BASE_URL` | `https://lsf.uni-hildesheim.de/` |
-   | `LSF_GRADES_URL` | Your LSF grades page URL (see `.env.example`) |
    | `LSF_USERNAME` | Your LSF username |
    | `LSF_PASSWORD` | Your LSF password |
    | `TELEGRAM_BOT_TOKEN` | Bot token from step 1 |
@@ -88,7 +87,6 @@ uv run ruff format --check .
 | Variable | Required | Default | Description |
 |---|---|---|---|
 | `LSF_BASE_URL` | Yes | — | LSF login page URL |
-| `LSF_GRADES_URL` | Yes | — | Direct URL to grade overview |
 | `LSF_USERNAME` | Yes | — | LSF username |
 | `LSF_PASSWORD` | Yes | — | LSF password |
 | `TELEGRAM_BOT_TOKEN` | Yes | — | Telegram bot token from @BotFather |

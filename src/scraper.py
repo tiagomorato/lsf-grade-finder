@@ -102,8 +102,8 @@ def login(
     base_url: str,
     username: str,
     password: str,
-) -> None:
-    """Log into LSF and establish an authenticated session."""
+) -> str:
+    """Log into LSF and return the post-login page HTML."""
     logger.info("Fetching login page...")
     resp = session.get(base_url)
     resp.raise_for_status()
@@ -129,29 +129,27 @@ def login(
         raise RuntimeError("Login failed — check your credentials")
 
     logger.info("Login successful.")
+    return resp.text
 
 
-def fetch_grades(session: requests.Session, grades_url: str) -> list[dict]:
-    """Fetch and parse grades from the LSF Notenspiegel page."""
-    logger.info("Fetching grades page...")
+def fetch_grades(session: requests.Session, portal_html: str) -> list[dict]:
+    """Find the Notenspiegel link on the portal page and parse grades."""
+    soup = BeautifulSoup(portal_html, "html.parser")
+
+    link = soup.find(
+        "a", string=lambda t: t and "Notenspiegel" in t
+    )
+    if not link or not link.get("href"):
+        raise ValueError(
+            "Could not find Notenspiegel link on portal page"
+        )
+
+    grades_url = link["href"]
+    logger.info(f"Following Notenspiegel link: {grades_url}")
     resp = session.get(grades_url)
     resp.raise_for_status()
 
-    soup = BeautifulSoup(resp.text, "html.parser")
-
-    notenspiegel_link = soup.find("a", string=lambda t: t and "Notenspiegel" in t)
-    if notenspiegel_link:
-        href = notenspiegel_link.get("href")
-        if href:
-            from urllib.parse import urljoin
-
-            link_url = urljoin(grades_url, href)
-            logger.info("Following Notenspiegel link...")
-            resp = session.get(link_url)
-            resp.raise_for_status()
-            soup = BeautifulSoup(resp.text, "html.parser")
-
-    return _parse_grade_table(soup)
+    return _parse_grade_table(BeautifulSoup(resp.text, "html.parser"))
 
 
 def _parse_grade_table(soup: BeautifulSoup) -> list[dict]:
@@ -197,12 +195,12 @@ def _parse_grade_table(soup: BeautifulSoup) -> list[dict]:
 
 
 def scrape_grades(
-    base_url: str, grades_url: str, username: str, password: str
+    base_url: str, username: str, password: str
 ) -> list[dict]:
-    """Full scrape flow: login + fetch grades, with retry."""
+    """Full scrape flow: login + find Notenspiegel + parse grades."""
     session = requests.Session()
 
-    _retry(login, session, base_url, username, password)
-    grades = _retry(fetch_grades, session, grades_url)
+    portal_html = _retry(login, session, base_url, username, password)
+    grades = _retry(fetch_grades, session, portal_html)
 
     return grades

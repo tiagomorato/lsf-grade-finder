@@ -20,7 +20,6 @@ def check_grades(config: dict) -> None:
 
     grades = scrape_grades(
         base_url=config["lsf_base_url"],
-        grades_url=config["lsf_grades_url"],
         username=config["lsf_username"],
         password=config["lsf_password"],
     )
