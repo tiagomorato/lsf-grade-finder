@@ -136,13 +136,9 @@ def fetch_grades(session: requests.Session, portal_html: str) -> list[dict]:
     """Find the Notenspiegel link on the portal page and parse grades."""
     soup = BeautifulSoup(portal_html, "html.parser")
 
-    link = soup.find(
-        "a", string=lambda t: t and "Notenspiegel" in t
-    )
+    link = soup.find("a", string=lambda t: t and "Notenspiegel" in t)
     if not link or not link.get("href"):
-        raise ValueError(
-            "Could not find Notenspiegel link on portal page"
-        )
+        raise ValueError("Could not find Notenspiegel link on portal page")
 
     grades_url = link["href"]
     logger.info(f"Following Notenspiegel link: {grades_url}")
@@ -194,9 +190,7 @@ def _parse_grade_table(soup: BeautifulSoup) -> list[dict]:
     return grades
 
 
-def scrape_grades(
-    base_url: str, username: str, password: str
-) -> list[dict]:
+def scrape_grades(base_url: str, username: str, password: str) -> list[dict]:
     """Full scrape flow: login + find Notenspiegel + parse grades."""
     session = requests.Session()
 
