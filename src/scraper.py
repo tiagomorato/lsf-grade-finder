@@ -73,6 +73,30 @@ def _extract_login_fields(html: str) -> tuple[dict, str]:
     return form_data, action, username_field, password_field
 
 
+def _follow_meta_refresh(
+    session: requests.Session, url: str, html: str
+) -> tuple[str, str]:
+    """Follow a meta http-equiv refresh redirect if present.
+
+    Returns (final_url, final_html).
+    """
+    from urllib.parse import urljoin
+
+    soup = BeautifulSoup(html, "html.parser")
+    meta = soup.find("meta", attrs={"http-equiv": "refresh"})
+    if meta:
+        content = meta.get("content", "")
+        # Format: "0; URL=/some/path"
+        parts = content.split("URL=", 1)
+        if len(parts) == 2:
+            redirect_url = urljoin(url, parts[1].strip())
+            logger.info(f"Following meta refresh to {redirect_url}")
+            resp = session.get(redirect_url)
+            resp.raise_for_status()
+            return resp.url, resp.text
+    return url, html
+
+
 def login(
     session: requests.Session,
     base_url: str,
@@ -84,7 +108,9 @@ def login(
     resp = session.get(base_url)
     resp.raise_for_status()
 
-    form_data, action, user_field, pass_field = _extract_login_fields(resp.text)
+    current_url, html = _follow_meta_refresh(session, resp.url, resp.text)
+
+    form_data, action, user_field, pass_field = _extract_login_fields(html)
 
     form_data[user_field] = username
     form_data[pass_field] = password
@@ -92,7 +118,7 @@ def login(
     if action and not action.startswith("http"):
         from urllib.parse import urljoin
 
-        action = urljoin(base_url, action)
+        action = urljoin(current_url, action)
     post_url = action or base_url
 
     logger.info("Submitting login form...")
