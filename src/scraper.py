@@ -90,7 +90,8 @@ def _follow_meta_refresh(
         parts = content.split("URL=", 1)
         if len(parts) == 2:
             redirect_url = urljoin(url, parts[1].strip())
-            logger.info(f"Following meta refresh to {redirect_url}")
+            # The URL can carry a session token, so it is not logged.
+            logger.info("Following meta refresh")
             resp = session.get(redirect_url)
             resp.raise_for_status()
             return resp.url, resp.text
@@ -141,7 +142,8 @@ def fetch_grades(session: requests.Session, portal_html: str) -> list[dict]:
         raise ValueError("Could not find Notenspiegel link on portal page")
 
     grades_url = link["href"]
-    logger.info(f"Following Notenspiegel link: {grades_url}")
+    # The link is session-specific, so it is not logged.
+    logger.info("Following Notenspiegel link")
     resp = session.get(grades_url)
     resp.raise_for_status()
 
